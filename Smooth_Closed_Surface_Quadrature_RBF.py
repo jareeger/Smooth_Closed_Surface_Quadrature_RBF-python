@@ -166,7 +166,7 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
         Current_Triangle_Edges=Current_Triangle_Edges[Sorted_Indices,:];
         Current_Triangle_Edge_Normals=Current_Triangle_Edge_Normals[Sorted_Indices,:];
         #==========================================================================
-        
+
         #==========================================================================
         # Find the projection point for the current triangle.
         #==========================================================================
@@ -191,7 +191,7 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
         tA=(nOBC[0]*AB[0]+nOBC[1]*AB[1]+nOBC[2]*AB[2])/(nOBC[0]*vOA[0]+nOBC[1]*vOA[1]+nOBC[2]*vOA[2]);
         Triangle_Projection_Point=A+tA*vOA;
         #==========================================================================
-        
+
         #==========================================================================
         # Find the RBF centers nearest the current triangle.
         #==========================================================================
@@ -199,21 +199,23 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
         # midpoint
         nni=Nearest_Neighbor_Indices[Current_Triangle_Index,:];
         
+        #print type(Triangle_Projection_Point)
         # Pick out the vertices of the current triangle
         Current_Triangle_Vertices=np.array([Quadrature_Nodes[Triangles[Current_Triangle_Index,:],0],Quadrature_Nodes[Triangles[Current_Triangle_Index,:],1],Quadrature_Nodes[Triangles[Current_Triangle_Index,:],2]]).T;
-      
+        
         # Compute the rotation matrix that rotates the normal vector of the
         # current triangle to [0 0 1].' in order to define a two-dimensional
         # coordinate system
         if np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2)<np.spacing(1):
             Rotation_Matrix=np.eye(3);
         else:
-            Rotation_Matrix=np.dot(np.matrix([[Triangle_Normals[Current_Triangle_Index,2]/np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2+Triangle_Normals[Current_Triangle_Index,2]**2),0,-np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2)/(np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2+Triangle_Normals[Current_Triangle_Index,2]**2))],
+            Rotation_Matrix1=np.array([[Triangle_Normals[Current_Triangle_Index,2]/np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2+Triangle_Normals[Current_Triangle_Index,2]**2),0,-np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2)/(np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2+Triangle_Normals[Current_Triangle_Index,2]**2))],
                 [0,1,0],
-                [np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2)/(np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2+Triangle_Normals[Current_Triangle_Index,2]**2)),0,Triangle_Normals[Current_Triangle_Index,2]/np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2+Triangle_Normals[Current_Triangle_Index,2]**2)]]),
-                np.matrix([[Triangle_Normals[Current_Triangle_Index,0]/np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2),Triangle_Normals[Current_Triangle_Index,1]/(np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2)),0],
+                [np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2)/(np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2+Triangle_Normals[Current_Triangle_Index,2]**2)),0,Triangle_Normals[Current_Triangle_Index,2]/np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2+Triangle_Normals[Current_Triangle_Index,2]**2)]]);
+            Rotation_Matrix2=np.array([[Triangle_Normals[Current_Triangle_Index,0]/np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2),Triangle_Normals[Current_Triangle_Index,1]/(np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2)),0],
                 [-Triangle_Normals[Current_Triangle_Index,1]/(np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2)),Triangle_Normals[Current_Triangle_Index,0]/np.sqrt(Triangle_Normals[Current_Triangle_Index,0]**2+Triangle_Normals[Current_Triangle_Index,1]**2),0],
-                [0,0,1]]));
+                [0,0,1]]);
+            Rotation_Matrix=np.dot(Rotation_Matrix1,Rotation_Matrix2);
         #==========================================================================
         
         #==========================================================================
@@ -226,7 +228,7 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
         RBF_Centers_in_Plane=np.array([Quadrature_Nodes[nni,0]+RBF_Centers_in_Plane_Mult*(Quadrature_Nodes[nni,0]-Triangle_Projection_Point[0]),
             Quadrature_Nodes[nni,1]+RBF_Centers_in_Plane_Mult*(Quadrature_Nodes[nni,1]-Triangle_Projection_Point[1]),
             Quadrature_Nodes[nni,2]+RBF_Centers_in_Plane_Mult*(Quadrature_Nodes[nni,2]-Triangle_Projection_Point[2])]).T;
-
+        
         # Shift the projected nearest neighbors by XP and then rotate the
         # points with the rotation matrix computed to point the normal to the
         # current triangle in the direction of [0 0 1].'.  This creates a
@@ -239,36 +241,36 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
         # only a bookkeeping step)
         Current_Triangle_Vertices_in_Plane=np.dot(Rotation_Matrix,np.array([Current_Triangle_Vertices[:,0]-Triangle_Projection_Point[0],Current_Triangle_Vertices[:,1]-Triangle_Projection_Point[1],Current_Triangle_Vertices[:,2]-Triangle_Projection_Point[2]])).T;
         Current_Triangle_Vertices_in_Plane=np.vstack((Current_Triangle_Vertices_in_Plane[0:3,0:2],Current_Triangle_Vertices_in_Plane[0:2,0:2]));
-
+        
         # Project the triangle midpoint into the plane
         Triangle_Midpoint_in_Plane=np.dot(Rotation_Matrix,np.array([Triangle_Midpoints[Current_Triangle_Index,0]-Triangle_Projection_Point[0],Triangle_Midpoints[Current_Triangle_Index,1]-Triangle_Projection_Point[1],Triangle_Midpoints[Current_Triangle_Index,2]-Triangle_Projection_Point[2]]));
         
         # Shift the projected points to avoid large polynomial terms in the
         # interpolation matrix.
-        RBF_Centers_in_Plane_Shift=Triangle_Midpoint_in_Plane[0,0:2];        
-        RBF_Centers_in_Plane=np.hstack([RBF_Centers_in_Plane[:,0]-RBF_Centers_in_Plane_Shift[0,0],RBF_Centers_in_Plane[:,1]-RBF_Centers_in_Plane_Shift[0,1]]);
-        Current_Triangle_Vertices_in_Plane=np.hstack((Current_Triangle_Vertices_in_Plane[:,0]-RBF_Centers_in_Plane_Shift[0,0],Current_Triangle_Vertices_in_Plane[:,1]-RBF_Centers_in_Plane_Shift[0,1]));
+        RBF_Centers_in_Plane_Shift=Triangle_Midpoint_in_Plane[0:2];        
+        RBF_Centers_in_Plane=np.vstack([RBF_Centers_in_Plane[:,0]-RBF_Centers_in_Plane_Shift[0],RBF_Centers_in_Plane[:,1]-RBF_Centers_in_Plane_Shift[1]]).T;
+        Current_Triangle_Vertices_in_Plane=np.vstack((Current_Triangle_Vertices_in_Plane[:,0]-RBF_Centers_in_Plane_Shift[0],Current_Triangle_Vertices_in_Plane[:,1]-RBF_Centers_in_Plane_Shift[1])).T;
         #==========================================================================   
         
         #==========================================================================
         # Compute the double integral over the triangle in the 2-coordinate plane.
         #==========================================================================
         # Reset I_RBF for each triangle
-        I_RBF=np.zeros((Number_of_Nearest_Neighbors,1));
+        I_RBF=np.zeros((Number_of_Nearest_Neighbors));
         
         # Compute the Perpendicular vertices D, E, and F which are the
         # orthogonal projections of the RBF centers (O) onto the sides AB, BC,
         # and CA of tABC
-        Perpendicular_Vertices_Mult=np.hstack((((RBF_Centers_in_Plane[:,0]-Current_Triangle_Vertices_in_Plane[0,0])*(Current_Triangle_Vertices_in_Plane[1,0]-Current_Triangle_Vertices_in_Plane[0,0])+(RBF_Centers_in_Plane[:,1]-Current_Triangle_Vertices_in_Plane[0,1])*(Current_Triangle_Vertices_in_Plane[1,1]-Current_Triangle_Vertices_in_Plane[0,1]))/((Current_Triangle_Vertices_in_Plane[1,0]-Current_Triangle_Vertices_in_Plane[0,0])**2+(Current_Triangle_Vertices_in_Plane[1,1]-Current_Triangle_Vertices_in_Plane[0,1])**2),
+        Perpendicular_Vertices_Mult=np.vstack((((RBF_Centers_in_Plane[:,0]-Current_Triangle_Vertices_in_Plane[0,0])*(Current_Triangle_Vertices_in_Plane[1,0]-Current_Triangle_Vertices_in_Plane[0,0])+(RBF_Centers_in_Plane[:,1]-Current_Triangle_Vertices_in_Plane[0,1])*(Current_Triangle_Vertices_in_Plane[1,1]-Current_Triangle_Vertices_in_Plane[0,1]))/((Current_Triangle_Vertices_in_Plane[1,0]-Current_Triangle_Vertices_in_Plane[0,0])**2+(Current_Triangle_Vertices_in_Plane[1,1]-Current_Triangle_Vertices_in_Plane[0,1])**2),
             ((RBF_Centers_in_Plane[:,0]-Current_Triangle_Vertices_in_Plane[1,0])*(Current_Triangle_Vertices_in_Plane[2,0]-Current_Triangle_Vertices_in_Plane[1,0])+(RBF_Centers_in_Plane[:,1]-Current_Triangle_Vertices_in_Plane[1,1])*(Current_Triangle_Vertices_in_Plane[2,1]-Current_Triangle_Vertices_in_Plane[1,1]))/((Current_Triangle_Vertices_in_Plane[2,0]-Current_Triangle_Vertices_in_Plane[1,0])**2+(Current_Triangle_Vertices_in_Plane[2,1]-Current_Triangle_Vertices_in_Plane[1,1])**2),
-            ((RBF_Centers_in_Plane[:,0]-Current_Triangle_Vertices_in_Plane[2,0])*(Current_Triangle_Vertices_in_Plane[0,0]-Current_Triangle_Vertices_in_Plane[2,0])+(RBF_Centers_in_Plane[:,1]-Current_Triangle_Vertices_in_Plane[2,1])*(Current_Triangle_Vertices_in_Plane[0,1]-Current_Triangle_Vertices_in_Plane[2,1]))/((Current_Triangle_Vertices_in_Plane[0,0]-Current_Triangle_Vertices_in_Plane[2,0])**2+(Current_Triangle_Vertices_in_Plane[0,1]-Current_Triangle_Vertices_in_Plane[2,1])**2)));
-        Perpendicular_Vertices_x=np.hstack([Perpendicular_Vertices_Mult[:,0]*(Current_Triangle_Vertices_in_Plane[1,0]-Current_Triangle_Vertices_in_Plane[0,0])+Current_Triangle_Vertices_in_Plane[0,0],
+            ((RBF_Centers_in_Plane[:,0]-Current_Triangle_Vertices_in_Plane[2,0])*(Current_Triangle_Vertices_in_Plane[0,0]-Current_Triangle_Vertices_in_Plane[2,0])+(RBF_Centers_in_Plane[:,1]-Current_Triangle_Vertices_in_Plane[2,1])*(Current_Triangle_Vertices_in_Plane[0,1]-Current_Triangle_Vertices_in_Plane[2,1]))/((Current_Triangle_Vertices_in_Plane[0,0]-Current_Triangle_Vertices_in_Plane[2,0])**2+(Current_Triangle_Vertices_in_Plane[0,1]-Current_Triangle_Vertices_in_Plane[2,1])**2))).T;
+        Perpendicular_Vertices_x=np.vstack([Perpendicular_Vertices_Mult[:,0]*(Current_Triangle_Vertices_in_Plane[1,0]-Current_Triangle_Vertices_in_Plane[0,0])+Current_Triangle_Vertices_in_Plane[0,0],
             Perpendicular_Vertices_Mult[:,1]*(Current_Triangle_Vertices_in_Plane[2,0]-Current_Triangle_Vertices_in_Plane[1,0])+Current_Triangle_Vertices_in_Plane[1,0],
-            Perpendicular_Vertices_Mult[:,2]*(Current_Triangle_Vertices_in_Plane[0,0]-Current_Triangle_Vertices_in_Plane[2,0])+Current_Triangle_Vertices_in_Plane[2,0]]);
-        Perpendicular_Vertices_y=np.hstack([Perpendicular_Vertices_Mult[:,0]*(Current_Triangle_Vertices_in_Plane[1,1]-Current_Triangle_Vertices_in_Plane[0,1])+Current_Triangle_Vertices_in_Plane[0,1],
+            Perpendicular_Vertices_Mult[:,2]*(Current_Triangle_Vertices_in_Plane[0,0]-Current_Triangle_Vertices_in_Plane[2,0])+Current_Triangle_Vertices_in_Plane[2,0]]).T;
+        Perpendicular_Vertices_y=np.vstack([Perpendicular_Vertices_Mult[:,0]*(Current_Triangle_Vertices_in_Plane[1,1]-Current_Triangle_Vertices_in_Plane[0,1])+Current_Triangle_Vertices_in_Plane[0,1],
             Perpendicular_Vertices_Mult[:,1]*(Current_Triangle_Vertices_in_Plane[2,1]-Current_Triangle_Vertices_in_Plane[1,1])+Current_Triangle_Vertices_in_Plane[1,1],
-            Perpendicular_Vertices_Mult[:,2]*(Current_Triangle_Vertices_in_Plane[0,1]-Current_Triangle_Vertices_in_Plane[2,1])+Current_Triangle_Vertices_in_Plane[2,1]]);
-
+            Perpendicular_Vertices_Mult[:,2]*(Current_Triangle_Vertices_in_Plane[0,1]-Current_Triangle_Vertices_in_Plane[2,1])+Current_Triangle_Vertices_in_Plane[2,1]]).T;
+        
         # Compute the sign that defines the orientation of the current triangle
         # tABC
         sABC=np.sign((Current_Triangle_Vertices_in_Plane[0,1]-Current_Triangle_Vertices_in_Plane[1,1])*(Current_Triangle_Vertices_in_Plane[2,0]-Current_Triangle_Vertices_in_Plane[0,0])+(Current_Triangle_Vertices_in_Plane[1,0]-Current_Triangle_Vertices_in_Plane[0,0])*(Current_Triangle_Vertices_in_Plane[2,1]-Current_Triangle_Vertices_in_Plane[0,1]));
@@ -287,26 +289,26 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
             
             # Compute the distance from the RBF center to its orthognal
             # projection onto the current side
-            alpha=np.sqrt(np.multiply((RBF_Centers_in_Plane[:,0]-Perpendicular_Vertices_x[:,Side_Index]),(RBF_Centers_in_Plane[:,0]-Perpendicular_Vertices_x[:,Side_Index]))+np.multiply((RBF_Centers_in_Plane[:,1]-Perpendicular_Vertices_y[:,Side_Index]),(RBF_Centers_in_Plane[:,1]-Perpendicular_Vertices_y[:,Side_Index])));
+            alpha=np.sqrt(np.power((RBF_Centers_in_Plane[:,0]-Perpendicular_Vertices_x[:,Side_Index]),2)+np.power((RBF_Centers_in_Plane[:,1]-Perpendicular_Vertices_y[:,Side_Index]),2));
             epsmult=0.0001;
             eps=np.spacing(1);
             
             # Compute the distances from the orthogonal projection of the RBF
             # center onto this side to each of the vertices on this side
-            beta1=np.sqrt(np.multiply((Perpendicular_Vertices_x[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index,0]),(Perpendicular_Vertices_x[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index,0]))+np.multiply((Perpendicular_Vertices_y[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index,1]),(Perpendicular_Vertices_y[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index,1])));
-            beta2=np.sqrt(np.multiply((Perpendicular_Vertices_x[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index+1,0]),(Perpendicular_Vertices_x[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index+1,0]))+np.multiply((Perpendicular_Vertices_y[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index+1,1]),(Perpendicular_Vertices_y[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index+1,1])));
-        
+            beta1=np.sqrt(np.power((Perpendicular_Vertices_x[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index,0]),2)+np.power((Perpendicular_Vertices_y[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index,1]),2));
+            beta2=np.sqrt(np.power((Perpendicular_Vertices_x[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index+1,0]),2)+np.power((Perpendicular_Vertices_y[:,Side_Index]-Current_Triangle_Vertices_in_Plane[Side_Index+1,1]),2));
+            
             # Evalutate the exact integrals of the RBF r^7 over each right
             # triangle while avoiding division by zero
             beta=beta1;
-            I_RBF_TEMP=np.multiply(Signs1,((np.multiply(alpha,(np.multiply(np.multiply(beta,np.sqrt(np.power(alpha,2)+np.power(beta,2))),(279*np.power(alpha,6)+326*np.multiply(np.power(alpha,4),np.power(beta,2))+200*np.multiply(np.power(alpha,2),np.power(beta,4))+48*np.power(beta,6)))+105*np.multiply(np.power(alpha,8),np.arcsinh(beta/alpha)))))/3456));
-            Nonzero_Indices=np.where(np.logical_and(np.abs(alpha[:,0])>epsmult*eps,np.abs(beta[:,0])>epsmult*eps))[0];
-            I_RBF[Nonzero_Indices,0]=I_RBF[Nonzero_Indices,0]+I_RBF_TEMP[Nonzero_Indices,0];
+            I_RBF_TEMP=np.multiply(Signs1,((np.multiply(alpha,(np.multiply(np.multiply(beta,np.sqrt(np.power(alpha,2)+np.power(beta,2))),(279*np.power(alpha,6)+326*np.multiply(np.power(alpha,4),np.power(beta,2))+200*np.multiply(np.power(alpha,2),np.power(beta,4))+48*np.power(beta,6)))+105*np.multiply(np.power(alpha,8),np.arcsinh(np.divide(beta,alpha))))))/3456));
+            Nonzero_Indices=np.where(np.logical_and(np.abs(alpha)>epsmult*eps,np.abs(beta)>epsmult*eps))[0];
+            I_RBF[Nonzero_Indices]=I_RBF[Nonzero_Indices]+I_RBF_TEMP[Nonzero_Indices];
 
             beta=beta2;
-            I_RBF_TEMP=np.multiply(Signs2,((np.multiply(alpha,(np.multiply(np.multiply(beta,np.sqrt(np.power(alpha,2)+np.power(beta,2))),(279*np.power(alpha,6)+326*np.multiply(np.power(alpha,4),np.power(beta,2))+200*np.multiply(np.power(alpha,2),np.power(beta,4))+48*np.power(beta,6)))+105*np.multiply(np.power(alpha,8),np.arcsinh(beta/alpha)))))/3456));
-            Nonzero_Indices=np.where(np.logical_and(np.abs(alpha[:,0])>epsmult*eps,np.abs(beta[:,0])>epsmult*eps))[0];
-            I_RBF[Nonzero_Indices,0]=I_RBF[Nonzero_Indices,0]+I_RBF_TEMP[Nonzero_Indices,0];
+            I_RBF_TEMP=np.multiply(Signs2,((np.multiply(alpha,(np.multiply(np.multiply(beta,np.sqrt(np.power(alpha,2)+np.power(beta,2))),(279*np.power(alpha,6)+326*np.multiply(np.power(alpha,4),np.power(beta,2))+200*np.multiply(np.power(alpha,2),np.power(beta,4))+48*np.power(beta,6)))+105*np.multiply(np.power(alpha,8),np.arcsinh(np.divide(beta,alpha))))))/3456));
+            Nonzero_Indices=np.where(np.logical_and(np.abs(alpha)>epsmult*eps,np.abs(beta)>epsmult*eps))[0];
+            I_RBF[Nonzero_Indices]=I_RBF[Nonzero_Indices]+I_RBF_TEMP[Nonzero_Indices];
         #==========================================================================
 
         #==========================================================================
@@ -327,18 +329,19 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
         P=np.ones((Number_of_Nearest_Neighbors,(Poly_Order+1)*(Poly_Order+2)/2));
         for orderindex in range(1,int(Poly_Order+1)):
             for termindex in range(0,int(np.floor(orderindex/2)+1)):
-                P[:,np.arange(((orderindex)*(orderindex+1)/2+termindex),((orderindex)*(orderindex+1)/2+termindex+1))]=np.multiply(RBF_Centers_in_Plane[np.arange(0,Number_of_Nearest_Neighbors),0],P[:,np.arange((orderindex-1)*(orderindex)/2+termindex,(orderindex-1)*(orderindex)/2+termindex+1)]);
+                P[:,(orderindex)*(orderindex+1)/2+termindex]=np.multiply(RBF_Centers_in_Plane[:,0],P[:,(orderindex-1)*(orderindex)/2+termindex]);
                 if termindex<orderindex/2+1:
-                    P[:,np.arange((orderindex+1)*(orderindex+2)/2-(termindex+1),(orderindex+1)*(orderindex+2)/2-(termindex))]=np.multiply(RBF_Centers_in_Plane[np.arange(0,Number_of_Nearest_Neighbors),1],P[:,np.arange((orderindex)*(orderindex+1)/2-(termindex+1),(orderindex)*(orderindex+1)/2-(termindex))]);
+                    P[:,(orderindex+1)*(orderindex+2)/2-(termindex+1)]=np.multiply(RBF_Centers_in_Plane[:,1],P[:,(orderindex)*(orderindex+1)/2-(termindex+1)]);
         #==========================================================================
+                
         if exact_n_S_flag==1:
             # In the case where the exact surface normal is available
             #==========================================================================
             # Compute the quadrature weights in the 2-coordinate plane.  This
             # solves the linear system Atilde*w=Itilde from the paper.
             #==========================================================================
-            w=np.linalg.solve(np.vstack([np.hstack([np.sqrt(np.power(r2,7)),P]),np.hstack([(P.T),np.zeros((((Poly_Order+1)*(Poly_Order+2))/2,((Poly_Order+1)*(Poly_Order+2))/2))])]),np.vstack([I_RBF,I_poly]));
-            RBF_Centers_in_Plane=np.hstack([RBF_Centers_in_Plane[:,0]+RBF_Centers_in_Plane_Shift[0,0],RBF_Centers_in_Plane[:,1]+RBF_Centers_in_Plane_Shift[0,1]]);
+            w=np.linalg.solve(np.vstack([np.hstack([np.sqrt(np.power(r2,7)),P]),np.hstack([(P.T),np.zeros((((Poly_Order+1)*(Poly_Order+2))/2,((Poly_Order+1)*(Poly_Order+2))/2))])]),np.hstack([I_RBF,I_poly]).T);
+            RBF_Centers_in_Plane=np.vstack([RBF_Centers_in_Plane[:,0]+RBF_Centers_in_Plane_Shift[0],RBF_Centers_in_Plane[:,1]+RBF_Centers_in_Plane_Shift[1]]).T;
             #==========================================================================
         
             #==========================================================================
@@ -348,8 +351,8 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
             #==========================================================================
             n_S=gradh(np.array([Quadrature_Nodes[nni,0],Quadrature_Nodes[nni,1],Quadrature_Nodes[nni,2]]).T);
             Normn_S=np.sqrt(np.dot(np.power(n_S,2),np.ones((3,1))));
-            n_S=np.matrix(n_S/np.dot(Normn_S,np.ones((1,3))));
-            #==========================================================================
+            n_S=np.divide(n_S,np.dot(Normn_S,np.ones((1,3))));
+            #==========================================================================E:\Dropbox\Radial_Basis_Function\RBF_Quadrature_Curved_Surface\Python_Code
         else:
             #==========================================================================
             #
@@ -375,8 +378,8 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
             # Compute gradient of RBFs to approximate surface normal
             #
             #==========================================================================
-            DxPhi=7*np.multiply((np.dot(np.ones((Number_of_Nearest_Neighbors,1)),RBF_Centers_in_Plane[:,0].T)-np.dot(RBF_Centers_in_Plane[:,0],np.ones((1,Number_of_Nearest_Neighbors)))),np.power(r2,5/2));
-            DyPhi=7*np.multiply((np.dot(np.ones((Number_of_Nearest_Neighbors,1)),RBF_Centers_in_Plane[:,1].T)-np.dot(RBF_Centers_in_Plane[:,1],np.ones((1,Number_of_Nearest_Neighbors)))),np.power(r2,5/2));
+            DxPhi=7*np.multiply((np.outer(np.ones((Number_of_Nearest_Neighbors)),RBF_Centers_in_Plane[:,0])-np.outer(RBF_Centers_in_Plane[:,0],np.ones((Number_of_Nearest_Neighbors)))),np.power(r2,5/2));
+            DyPhi=7*np.multiply((np.outer(np.ones((Number_of_Nearest_Neighbors)),RBF_Centers_in_Plane[:,1])-np.outer(RBF_Centers_in_Plane[:,1],np.ones((Number_of_Nearest_Neighbors)))),np.power(r2,5/2));
             #==========================================================================
             
             #==========================================================================
@@ -384,18 +387,18 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
             # Compute gradient of polynomial terms to approximate surface normal
             #
             #==========================================================================
-            DxP=np.zeros((Number_of_Nearest_Neighbors,1));
-            DyP=np.zeros((Number_of_Nearest_Neighbors,1));
+            DxP=np.zeros((Number_of_Nearest_Neighbors));
+            DyP=np.zeros((Number_of_Nearest_Neighbors));
             for orderindex in range(1,Poly_Order+1):
                 for termindex in range(0,orderindex+1):
                     if orderindex==termindex:
-                        DxP=np.hstack([DxP,np.zeros((Number_of_Nearest_Neighbors,1))]);
+                        DxP=np.vstack([DxP,np.zeros((Number_of_Nearest_Neighbors))]);
                     else:
-                        DxP=np.hstack([DxP,(orderindex-termindex)*np.multiply(np.power(RBF_Centers_in_Plane[:,0],(orderindex-termindex-1)),np.power(RBF_Centers_in_Plane[:,1],(termindex)))]);
+                        DxP=np.vstack([DxP,(orderindex-termindex)*np.multiply(np.power(RBF_Centers_in_Plane[:,0],(orderindex-termindex-1)),np.power(RBF_Centers_in_Plane[:,1],(termindex)))]);
                     if termindex==0:
-                        DyP=np.hstack([DyP,np.zeros((Number_of_Nearest_Neighbors,1))]);
+                        DyP=np.vstack([DyP,np.zeros((Number_of_Nearest_Neighbors))]);
                     else:
-                        DyP=np.hstack([DyP,(termindex)*np.multiply(np.power(RBF_Centers_in_Plane[:,0],(orderindex-termindex)),np.power(RBF_Centers_in_Plane[:,1],(termindex-1)))]);
+                        DyP=np.vstack([DyP,(termindex)*np.multiply(np.power(RBF_Centers_in_Plane[:,0],(orderindex-termindex)),np.power(RBF_Centers_in_Plane[:,1],(termindex-1)))]);
             #==========================================================================
             
                 
@@ -404,12 +407,12 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
             # Approximate the surface normal
             #
             #==========================================================================
-            xx=np.dot(np.hstack([DxPhi,DxP]),cx);
-            xy=np.dot(np.hstack([DyPhi,DyP]),cx);
-            yx=np.dot(np.hstack([DxPhi,DxP]),cy);
-            yy=np.dot(np.hstack([DyPhi,DyP]),cy);
-            zx=np.dot(np.hstack([DxPhi,DxP]),cz);
-            zy=np.dot(np.hstack([DyPhi,DyP]),cz);
+            xx=np.dot(np.hstack([DxPhi,DxP.T]),cx);
+            xy=np.dot(np.hstack([DyPhi,DyP.T]),cx);
+            yx=np.dot(np.hstack([DxPhi,DxP.T]),cy);
+            yy=np.dot(np.hstack([DyPhi,DyP.T]),cy);
+            zx=np.dot(np.hstack([DxPhi,DxP.T]),cz);
+            zy=np.dot(np.hstack([DyPhi,DyP.T]),cz);
             n_Sapprox=np.hstack([np.multiply(yx,zy)-np.multiply(zx,yy),np.multiply(zx,xy)-np.multiply(xx,zy),np.multiply(xx,yy)-np.multiply(yx,xy)]);
             #==========================================================================
             
@@ -417,9 +420,10 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
             # Compute the quadrature weights in the 2-coordinate plane.  This
             # solves the linear system Atilde*w=Itilde from the paper.
             #==========================================================================
-            w=sp.linalg.solve_triangular(R,np.dot(Q.T,np.vstack([I_RBF,I_poly])),check_finite=False);
-            RBF_Centers_in_Plane=np.hstack([RBF_Centers_in_Plane[:,0]+RBF_Centers_in_Plane_Shift[0,0],RBF_Centers_in_Plane[:,1]+RBF_Centers_in_Plane_Shift[0,1]]);
+            w=sp.linalg.solve_triangular(R,np.dot(Q.T,np.hstack([I_RBF,I_poly]).T),check_finite=False);
+            RBF_Centers_in_Plane=np.vstack([RBF_Centers_in_Plane[:,0]+RBF_Centers_in_Plane_Shift[0],RBF_Centers_in_Plane[:,1]+RBF_Centers_in_Plane_Shift[1]]).T;
             #==========================================================================
+            
             #==========================================================================
             # Determine the surface normal n_S at each of the Number_of_Nearest_Neighbor
             # points to the current triangle on the surface.  In this case n_S
@@ -428,7 +432,7 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
             #==========================================================================
             n_S=n_Sapprox;
             Normn_S=np.sqrt(np.dot(np.power(n_S,2),np.ones((3,1))));
-            n_S=n_S/(np.dot(Normn_S,np.ones((1,3))));
+            n_S=np.divide(n_S,(np.dot(Normn_S,np.ones((1,3)))));
             #==========================================================================
         
         #==========================================================================
@@ -447,12 +451,14 @@ def Smooth_Closed_Surface_Quadrature_RBF(Quadrature_Nodes,Triangles,*args):
         
         Pn=Triangle_Normals[Current_Triangle_Index,:]/(np.dot(np.sqrt(np.dot(np.power(Triangle_Normals[Current_Triangle_Index,:],2),np.ones((3,1)))),np.ones((1,3))));
         
-        Area_Element_Distortions=np.abs(np.multiply((np.dot(np.multiply((np.dot(np.ones((Number_of_Nearest_Neighbors,1)),np.array([Pn]))),(V/(np.dot(NormV,np.ones((1,3)))))),np.ones((3,1)))/np.dot(np.multiply(n_S,(V/np.dot(NormV,np.ones((1,3))))),np.ones((3,1)))),np.power(rho/R,2)));
+        Area_Element_Distortions=np.abs(np.multiply((np.divide(np.dot(np.multiply((np.dot(np.ones((Number_of_Nearest_Neighbors,1)),np.array([Pn]))),(np.divide(V,(np.dot(NormV,np.ones((1,3))))))),np.ones((3,1))),np.dot(np.multiply(n_S,(np.divide(V,np.dot(NormV,np.ones((1,3)))))),np.ones((3,1))))),np.power(np.divide(rho,R),2)));
+        
         if exact_n_S_flag==1:
-            w=np.multiply(np.matrix(w[np.arange(0,Number_of_Nearest_Neighbors),0]).T,Area_Element_Distortions);
+            w=np.multiply(w[np.arange(0,Number_of_Nearest_Neighbors)],Area_Element_Distortions[:,0]);
         else:
-            w=np.multiply(w[np.arange(0,Number_of_Nearest_Neighbors),0],Area_Element_Distortions.T).T;
-        Quadrature_Weights_Triangles[:,np.arange(Current_Triangle_Index,Current_Triangle_Index+1)]=w;
+            w=np.multiply(w[np.arange(0,Number_of_Nearest_Neighbors)],Area_Element_Distortions[:,0]);
+        
+        Quadrature_Weights_Triangles[:,Current_Triangle_Index]=w;
         #==========================================================================
         
     #==========================================================================
@@ -474,7 +480,7 @@ def Polynomial_Term_Right_Triangle_Double_Integrals(Triangle_Vertices,poly_order
     # being output.  The operators '*', '/', '**' are used in place of '*', '/', '^'
     # in order to simplify possible future vectorization.
 
-    I_poly=np.zeros(((poly_order+1)*(poly_order+2)/2,1));
+    I_poly=np.zeros(((poly_order+1)*(poly_order+2)/2));
     
     for Side_Index in range(0,3):
         xV1=Triangle_Vertices[Side_Index,0];
